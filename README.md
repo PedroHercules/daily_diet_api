@@ -2,6 +2,20 @@
 
 This project is an API for diet control. The user can register a meal of the day, and indicate whether the meal is part of the diet or not.
 
+## Tools
+- [Typescript](https://www.typescriptlang.org/)
+- [Fastify](https://www.fastify.io/)
+
+## How launch
+1. Install dependencies
+```shell
+ npm install
+```
+2. Run server
+```shell
+ npm run dev
+```
+
 #
 
 ## Endpoints
