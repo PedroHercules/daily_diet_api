@@ -1,7 +1,12 @@
 import fastify from 'fastify'
 import { env } from './env'
+import { userRoutes } from './routes/user'
 
-const app = fastify()
+export const app = fastify()
+
+app.register(userRoutes, {
+  prefix: 'user'
+})
 
 app.get('/', async () => {
   return {
