@@ -1,11 +1,27 @@
-import fastify from 'fastify'
+import fastify, { FastifyRequest, FastifyReply } from 'fastify'
+import jwt from '@fastify/jwt'
 import { env } from './env'
 import { userRoutes } from './routes/user'
 
 export const app = fastify()
 
+app.register(jwt, {
+  secret: 'X2@idnslkjklsdlk',
+})
+
+app.decorate(
+  'authenticate',
+  async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      await request.jwtVerify()
+    } catch (error) {
+      reply.send(error)
+    }
+  }
+)
+
 app.register(userRoutes, {
-  prefix: 'user'
+  prefix: 'user',
 })
 
 app.get('/', async () => {
