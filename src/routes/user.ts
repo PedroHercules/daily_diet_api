@@ -39,7 +39,7 @@ export async function userRoutes(app: FastifyInstance) {
           'target_weight_kg',
           'created_at',
         ])
-      console.log(user)
+
       return reply.status(201).send({ user: user[0] })
     } catch (error: any) {
       return reply.status(error.status || 500).send({
