@@ -1,27 +1,39 @@
-import { FastifyInstance } from "fastify";
-import { z,  } from 'zod'
-import { app } from "../server";
+import { FastifyInstance } from 'fastify'
+import { z } from 'zod'
+import { app } from '../server'
+import { knex } from '../database'
+import { randomUUID } from 'node:crypto'
 
 export async function userRoutes(app: FastifyInstance) {
   app.post('/', async (request, reply) => {
     const createUserSchema = z.object({
       name: z.string(),
       email: z.string().email('This value must be a e-mail.'),
-      password: z.string().min(8, 'The password must have 8 or more characters.'),
+      password: z
+        .string()
+        .min(8, 'The password must have 8 or more characters.'),
       height_cm: z.number(),
       weight_kg: z.number(),
-      target_weight_kg: z.number()
+      target_weight_kg: z.number(),
     })
 
     try {
-      const body = createUserSchema.parse(request.body)
-      return reply.status(201).send({ body })
+      const { name, email, password, height_cm, weight_kg, target_weight_kg } =
+        createUserSchema.parse(request.body)
+      await knex('users').insert({
+        id: randomUUID(),
+        name,
+        email,
+        password,
+        height_cm,
+        weight_kg,
+        target_weight_kg,
+      })
+      return reply.status(201).send({ message: 'User created successfully' })
     } catch (error: any) {
       return reply.status(error.status || 500).send({
-        message: JSON.parse(error.message)
+        message: JSON.parse(error.message),
       })
     }
-
-    
   })
 }
