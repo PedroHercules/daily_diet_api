@@ -20,16 +20,27 @@ export async function userRoutes(app: FastifyInstance) {
     try {
       const { name, email, password, height_cm, weight_kg, target_weight_kg } =
         createUserSchema.parse(request.body)
-      await knex('users').insert({
-        id: randomUUID(),
-        name,
-        email,
-        password,
-        height_cm,
-        weight_kg,
-        target_weight_kg,
-      })
-      return reply.status(201).send({ message: 'User created successfully' })
+      const user = await knex('users')
+        .insert({
+          id: randomUUID(),
+          name,
+          email,
+          password,
+          height_cm,
+          weight_kg,
+          target_weight_kg,
+        })
+        .returning([
+          'id',
+          'name',
+          'email',
+          'height_cm',
+          'weight_kg',
+          'target_weight_kg',
+          'created_at',
+        ])
+      console.log(user)
+      return reply.status(201).send({ user: user[0] })
     } catch (error: any) {
       return reply.status(error.status || 500).send({
         message: JSON.parse(error.message),
