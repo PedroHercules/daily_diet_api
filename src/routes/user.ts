@@ -1,8 +1,17 @@
-import { FastifyInstance } from 'fastify'
+import { FastifyInstance, FastifyReply } from 'fastify'
 import { z } from 'zod'
 import { app } from '../server'
 import { knex } from '../database'
 import { randomUUID } from 'node:crypto'
+
+async function checkIfUserEmailExists(email: string, reply: FastifyReply) {
+  const findUser = await knex('users').where('email', email)
+  if (findUser) {
+    return reply.status(400).send({
+      message: 'User email already exists',
+    })
+  }
+}
 
 export async function userRoutes(app: FastifyInstance) {
   app.post('/', async (request, reply) => {
@@ -20,6 +29,9 @@ export async function userRoutes(app: FastifyInstance) {
     try {
       const { name, email, password, height_cm, weight_kg, target_weight_kg } =
         createUserSchema.parse(request.body)
+
+      await checkIfUserEmailExists(email, reply)
+
       const user = await knex('users')
         .insert({
           id: randomUUID(),
