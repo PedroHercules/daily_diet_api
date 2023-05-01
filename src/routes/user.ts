@@ -12,9 +12,9 @@ export async function userRoutes(app: FastifyInstance) {
       password: z
         .string()
         .min(8, 'The password must have 8 or more characters.'),
-      height_cm: z.number(),
-      weight_kg: z.number(),
-      target_weight_kg: z.number(),
+      height_cm: z.number().optional(),
+      weight_kg: z.number().optional(),
+      target_weight_kg: z.number().optional(),
     })
 
     try {
