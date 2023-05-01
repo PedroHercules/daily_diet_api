@@ -3,34 +3,25 @@ import { z } from 'zod'
 import { app } from '../server'
 import { knex } from '../database'
 import { randomUUID } from 'node:crypto'
+import { createUserSchema } from '../schemas/userSchemas'
 
-async function checkIfUserEmailExists(email: string, reply: FastifyReply) {
-  const findUser = await knex('users').where('email', email)
-  if (findUser) {
-    return reply.status(400).send({
-      message: 'User email already exists',
-    })
-  }
+async function findUserByEmail(email: string) {
+  const user = await knex('users').where('email', email).first()
+  return user
 }
 
 export async function userRoutes(app: FastifyInstance) {
   app.post('/', async (request, reply) => {
-    const createUserSchema = z.object({
-      name: z.string(),
-      email: z.string().email('This value must be a e-mail.'),
-      password: z
-        .string()
-        .min(8, 'The password must have 8 or more characters.'),
-      height_cm: z.number().optional(),
-      weight_kg: z.number().optional(),
-      target_weight_kg: z.number().optional(),
-    })
-
     try {
       const { name, email, password, height_cm, weight_kg, target_weight_kg } =
         createUserSchema.parse(request.body)
 
-      await checkIfUserEmailExists(email, reply)
+      const emailExists = await findUserByEmail(email)
+      if (emailExists) {
+        return reply.status(400).send({
+          message: 'User e-mail already exists!',
+        })
+      }
 
       const user = await knex('users')
         .insert({
