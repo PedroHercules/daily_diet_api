@@ -67,8 +67,6 @@ describe('User E2E tests', () => {
         password: createUserBody.password,
       })
 
-    console.log('response: ', loginUserResponse)
-
     expect(loginUserResponse.status).toEqual(404)
   })
 
@@ -112,5 +110,52 @@ describe('User E2E tests', () => {
     const loggedUser = await request(app.server).get('/user')
 
     expect(loggedUser.status).toEqual(401)
+  })
+
+  it('should be able update user information', async () => {
+    await request(app.server).post('/user').send(createUserBody)
+
+    const loginUserResponse = await request(app.server)
+      .post('/user/login')
+      .send({
+        email: createUserBody.email,
+        password: createUserBody.password,
+      })
+
+    const token = loginUserResponse.body.token
+
+    await request(app.server)
+      .put('/user')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        name: 'Pedro Teste',
+        email: 'testepedro@email.com',
+      })
+      .expect(200)
+
+    const getUpdatedUser = await findUserByEmail('testepedro@email.com')
+
+    expect(getUpdatedUser).toEqual(
+      expect.objectContaining({
+        name: 'Pedro Teste',
+        email: 'testepedro@email.com',
+      })
+    )
+  })
+
+  it('should not be able update user without token', async () => {
+    await request(app.server).post('/user').send(createUserBody)
+
+    await request(app.server).post('/user/login').send({
+      email: createUserBody.email,
+      password: createUserBody.password,
+    })
+
+    const response = await request(app.server).put('/user').send({
+      name: 'Pedro Teste',
+      email: 'testepedro@email.com',
+    })
+
+    expect(response.status).toEqual(401)
   })
 })
