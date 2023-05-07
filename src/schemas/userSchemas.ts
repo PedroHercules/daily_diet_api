@@ -14,3 +14,11 @@ export const loginUserSchema = z.object({
   email: z.string().email('This value must be a e-mail'),
   password: z.string(),
 })
+
+export const updateUserSchema = z.object({
+  name: z.string().optional(),
+  email: z.string().email('This value must be a e-mail.').optional(),
+  height_cm: z.number().optional(),
+  weight_kg: z.number().optional(),
+  target_weight_kg: z.number().optional(),
+})

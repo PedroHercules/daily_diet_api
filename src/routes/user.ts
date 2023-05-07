@@ -1,11 +1,32 @@
 import { FastifyInstance, FastifyReply } from 'fastify'
 import { knex } from '../database'
 import { randomUUID } from 'node:crypto'
-import { createUserSchema, loginUserSchema } from '../schemas/userSchemas'
+import {
+  createUserSchema,
+  loginUserSchema,
+  updateUserSchema,
+} from '../schemas/userSchemas'
 import { AuthUserType } from '../@types/user'
 
 async function findUserByEmail(email: string) {
   const user = await knex('users').where('email', email).first()
+  return user
+}
+
+async function findUserById(id: number) {
+  const user = await knex('users')
+    .where('id', id)
+    .first()
+    .select([
+      'id',
+      'name',
+      'email',
+      'height_cm',
+      'weight_kg',
+      'target_weight_kg',
+      'created_at',
+    ])
+
   return user
 }
 
@@ -92,20 +113,32 @@ export async function userRoutes(app: FastifyInstance) {
     async (request, reply) => {
       const auth = request.user as AuthUserType
 
-      const user = await knex('users')
-        .where('id', auth.id)
-        .first()
-        .select([
-          'id',
-          'name',
-          'email',
-          'height_cm',
-          'weight_kg',
-          'target_weight_kg',
-          'created_at',
-        ])
+      const user = await findUserById(auth.id)
 
       return reply.status(200).send(user)
+    }
+  )
+
+  app.put(
+    '/',
+    {
+      onRequest: [app.authenticate],
+    },
+    async (request, reply) => {
+      try {
+        const body = updateUserSchema.parse(request.body)
+        const auth = request.user as AuthUserType
+
+        await knex('users').where('id', auth.id).first().update(body)
+
+        return reply.status(200).send({
+          message: 'Usuário alterado com sucesso',
+        })
+      } catch (error: any) {
+        return reply.status(error.status || 500).send({
+          message: error.message,
+        })
+      }
     }
   )
 }
