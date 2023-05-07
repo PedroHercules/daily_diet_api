@@ -5,7 +5,7 @@ import { findUserByEmail, findUserById } from '../../src/routes/user'
 import { execSync } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
 
-describe('User routes', () => {
+describe('User E2E tests', () => {
   beforeAll(async () => {
     await app.ready()
   })

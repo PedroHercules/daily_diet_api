@@ -3,7 +3,7 @@ import { findUserByEmail, findUserById } from '../../src/routes/user'
 import { execSync } from 'node:child_process'
 import { knex } from '../../src/database'
 
-describe('User methods', () => {
+describe('User integration tests', () => {
   beforeEach(async () => {
     execSync('npm run knex migrate:rollback --all')
     execSync('npm run knex migrate:latest --all')
