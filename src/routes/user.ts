@@ -83,8 +83,17 @@ export async function userRoutes(app: FastifyInstance) {
   app.post('/login', async (request, reply) => {
     try {
       const body = loginUserSchema.parse(request.body)
-      const { password, ...user } = await findUserByEmail(body.email)
-      const isCorrectPassword = await bcrypt.compare(body.password, password)
+      const user = await findUserByEmail(body.email)
+      if (!user) {
+        return reply.status(404).send({
+          message: 'User not found',
+        })
+      }
+
+      const isCorrectPassword = await bcrypt.compare(
+        body.password,
+        user.password
+      )
       if (!isCorrectPassword) {
         return reply.status(400).send({
           message: 'Incorrect password!',
@@ -97,6 +106,8 @@ export async function userRoutes(app: FastifyInstance) {
           expiresIn: '7d',
         }
       )
+
+      user.password = null
 
       return reply.status(200).send({
         user,
