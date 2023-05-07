@@ -84,7 +84,6 @@ export async function userRoutes(app: FastifyInstance) {
     try {
       const body = loginUserSchema.parse(request.body)
       const { password, ...user } = await findUserByEmail(body.email)
-      console.log('password: ', password)
       const isCorrectPassword = await bcrypt.compare(body.password, password)
       if (!isCorrectPassword) {
         return reply.status(400).send({
