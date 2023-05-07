@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyReply } from 'fastify'
 import { knex } from '../database'
 import { randomUUID } from 'node:crypto'
+import bcrypt from 'bcrypt'
 import {
   createUserSchema,
   loginUserSchema,
@@ -43,12 +44,14 @@ export async function userRoutes(app: FastifyInstance) {
         })
       }
 
+      const passwordCrypted = await bcrypt.hash(password, 10)
+
       const user = await knex('users')
         .insert({
           id: randomUUID(),
           name,
           email,
-          password,
+          password: passwordCrypted,
           height_cm,
           weight_kg,
           target_weight_kg,
@@ -81,7 +84,9 @@ export async function userRoutes(app: FastifyInstance) {
     try {
       const body = loginUserSchema.parse(request.body)
       const { password, ...user } = await findUserByEmail(body.email)
-      if (body.password !== password) {
+      console.log('password: ', password)
+      const isCorrectPassword = await bcrypt.compare(body.password, password)
+      if (!isCorrectPassword) {
         return reply.status(400).send({
           message: 'Incorrect password!',
         })
