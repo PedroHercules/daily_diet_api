@@ -9,12 +9,12 @@ import {
 } from '../schemas/userSchemas'
 import { AuthUserType } from '../@types/user'
 
-async function findUserByEmail(email: string) {
+export async function findUserByEmail(email: string) {
   const user = await knex('users').where('email', email).first()
   return user
 }
 
-async function findUserById(id: number) {
+export async function findUserById(id: number) {
   const user = await knex('users')
     .where('id', id)
     .first()

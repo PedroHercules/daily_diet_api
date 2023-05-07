@@ -7,7 +7,8 @@
     "dev": "tsx watch src/server.ts",
     "knex": "node --no-warnings --loader tsx ./node_modules/knex/bin/cli.js",
     "lint": "eslint src --ext .ts --fix",
-    "test": "vitest"
+    "test": "vitest",
+    "coverage": "vitest run --coverage"
   },
   "keywords": [],
   "author": "",
@@ -15,10 +16,13 @@
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
     "@types/node": "^18.16.3",
+    "@types/supertest": "^2.0.12",
+    "@vitest/coverage-istanbul": "^0.31.0",
     "eslint": "^8.39.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-prettier": "^4.2.1",
     "prettier": "^2.8.8",
+    "supertest": "^6.3.3",
     "tsx": "^3.12.7",
     "typescript": "^5.0.4",
     "vitest": "^0.31.0"
