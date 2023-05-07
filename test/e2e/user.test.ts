@@ -31,21 +31,23 @@ describe('User E2E tests', () => {
   it('should be able create a new user', async () => {
     const response = await request(app.server)
       .post('/user')
-      .send({
-        id: randomUUID(),
-        ...createUserBody,
-      })
+      .send(createUserBody)
 
     expect(response.status).toEqual(201)
   })
 
-  it('should be able login user', async () => {
-    await request(app.server)
+  it('should not be able to create a user with an existing email', async () => {
+    await request(app.server).post('/user').send(createUserBody)
+    const response = await request(app.server)
       .post('/user')
-      .send({
-        id: randomUUID(),
-        ...createUserBody,
-      })
+      .send(createUserBody)
+
+    expect(response.status).toEqual(400)
+    expect(response.body.message).toEqual('User e-mail already exists!')
+  })
+
+  it('should be able login user', async () => {
+    await request(app.server).post('/user').send(createUserBody)
 
     const loginUserResponse = await request(app.server)
       .post('/user/login')
@@ -55,5 +57,60 @@ describe('User E2E tests', () => {
       })
 
     expect(loginUserResponse.status).toEqual(200)
+  })
+
+  it('should not be able to log in a user who is not registered', async () => {
+    const loginUserResponse = await request(app.server)
+      .post('/user/login')
+      .send({
+        email: createUserBody.email,
+        password: createUserBody.password,
+      })
+
+    console.log('response: ', loginUserResponse)
+
+    expect(loginUserResponse.status).toEqual(404)
+  })
+
+  it('should be able get logged user', async () => {
+    await request(app.server).post('/user').send(createUserBody)
+
+    const loginUserResponse = await request(app.server)
+      .post('/user/login')
+      .send({
+        email: createUserBody.email,
+        password: createUserBody.password,
+      })
+
+    const token = loginUserResponse.body.token
+
+    const loggedUser = await request(app.server)
+      .get('/user')
+      .set('Authorization', `Bearer ${token}`)
+
+    expect(loggedUser.body).toEqual(
+      expect.objectContaining({
+        name: createUserBody.name,
+        email: createUserBody.email,
+        height_cm: createUserBody.height_cm,
+        weight_kg: createUserBody.weight_kg,
+        target_weight_kg: createUserBody.target_weight_kg,
+      })
+    )
+  })
+
+  it('should not be able get logged user without token', async () => {
+    await request(app.server).post('/user').send(createUserBody)
+
+    const loginUserResponse = await request(app.server)
+      .post('/user/login')
+      .send({
+        email: createUserBody.email,
+        password: createUserBody.password,
+      })
+
+    const loggedUser = await request(app.server).get('/user')
+
+    expect(loggedUser.status).toEqual(401)
   })
 })
