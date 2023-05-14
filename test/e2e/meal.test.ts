@@ -54,4 +54,34 @@ describe('Meal E2E tests', () => {
 
     expect(createMealResponse.status).toEqual(201)
   })
+
+  it('should be able to return user meals', async () => {
+    await request(app.server).post('/user').send(createUserBody)
+
+    const loginUserResponse = await request(app.server)
+      .post('/user/login')
+      .send({
+        email: createUserBody.email,
+        password: createUserBody.password,
+      })
+
+    const token = loginUserResponse.body.token
+
+    await request(app.server)
+      .post('/meal')
+      .send(createMealBody)
+      .set('Authorization', `Bearer ${token}`)
+
+    const getMealsResponse = await request(app.server)
+      .get('/meal')
+      .set('Authorization', `Bearer ${token}`)
+
+    expect(getMealsResponse.body).toEqual([
+      expect.objectContaining({
+        name: createMealBody.name,
+        description: createMealBody.description,
+        is_on_diet: 1,
+      }),
+    ])
+  })
 })
