@@ -2,6 +2,7 @@ import fastify, { FastifyRequest, FastifyReply } from 'fastify'
 import jwt from '@fastify/jwt'
 import { userRoutes } from './routes/user'
 import { env } from './env'
+import { mealRoutes } from './routes/meal'
 
 export const app = fastify()
 
@@ -22,6 +23,10 @@ app.decorate(
 
 app.register(userRoutes, {
   prefix: 'user',
+})
+
+app.register(mealRoutes, {
+  prefix: 'meal',
 })
 
 app.get('/', async () => {
