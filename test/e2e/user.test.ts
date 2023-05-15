@@ -19,6 +19,10 @@ describe('User E2E tests', () => {
     execSync('npm run knex migrate:latest')
   })
 
+  afterAll(async () => {
+    execSync('npm run knex migrate:rollback --all')
+  })
+
   const createUserBody = {
     name: 'Pedro Hercules',
     email: 'pedrotesteroute@email.com',
