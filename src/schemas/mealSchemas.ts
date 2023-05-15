@@ -7,3 +7,11 @@ export const createMealSchema = z.object({
   time: z.string(),
   is_on_diet: z.boolean(),
 })
+
+export const updateMealSchema = z.object({
+  name: z.string().optional(),
+  description: z.string().optional(),
+  date: z.string().optional(),
+  time: z.string().optional(),
+  is_on_diet: z.boolean().optional(),
+})
