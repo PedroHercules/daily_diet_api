@@ -18,6 +18,10 @@ describe('Meal E2E tests', () => {
     execSync('npm run knex migrate:latest')
   })
 
+  afterAll(async () => {
+    execSync('npm run knex migrate:rollback --all')
+  })
+
   const createMealBody = {
     name: 'Pizza de frango',
     description: 'Pizza feita com aveia, ovos e com recheio de frango',
@@ -112,6 +116,42 @@ describe('Meal E2E tests', () => {
         name: createMealBody.name,
         description: createMealBody.description,
         is_on_diet: 1,
+      })
+    )
+  })
+
+  it('should be able to edit a meal', async () => {
+    await request(app.server).post('/user').send(createUserBody)
+
+    const loginUserResponse = await request(app.server)
+      .post('/user/login')
+      .send({
+        email: createUserBody.email,
+        password: createUserBody.password,
+      })
+
+    const token = loginUserResponse.body.token
+
+    const createdMealResponse = await request(app.server)
+      .post('/meal')
+      .send(createMealBody)
+      .set('Authorization', `Bearer ${token}`)
+
+    const mealId = createdMealResponse.body.id
+    const updateMealResponse = await request(app.server)
+      .put(`/meal/${mealId}`)
+      .send({
+        name: 'Nome atualizado',
+        description: 'Atualização teste',
+        is_on_diet: false,
+      })
+      .set('Authorization', `Bearer ${token}`)
+
+    expect(updateMealResponse.body).toEqual(
+      expect.objectContaining({
+        name: 'Nome atualizado',
+        description: 'Atualização teste',
+        is_on_diet: 0,
       })
     )
   })
