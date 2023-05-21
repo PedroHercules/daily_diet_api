@@ -18,10 +18,6 @@ describe('Meal E2E tests', () => {
     execSync('npm run knex migrate:latest')
   })
 
-  afterAll(async () => {
-    execSync('npm run knex migrate:rollback --all')
-  })
-
   const createMealBody = {
     name: 'Pizza de frango',
     description: 'Pizza feita com aveia, ovos e com recheio de frango',
@@ -154,5 +150,30 @@ describe('Meal E2E tests', () => {
         is_on_diet: 0,
       })
     )
+  })
+
+  it('should be able to delete a meal', async () => {
+    await request(app.server).post('/user').send(createUserBody)
+
+    const loginUserResponse = await request(app.server)
+      .post('/user/login')
+      .send({
+        email: createUserBody.email,
+        password: createUserBody.password,
+      })
+
+    const token = loginUserResponse.body.token
+
+    const createdMealResponse = await request(app.server)
+      .post('/meal')
+      .send(createMealBody)
+      .set('Authorization', `Bearer ${token}`)
+
+    const mealId = createdMealResponse.body.id
+    const deleteMealResponse = await request(app.server)
+      .delete(`/meal/${mealId}`)
+      .set('Authorization', `Bearer ${token}`)
+
+    expect(deleteMealResponse.status).toEqual(200)
   })
 })
