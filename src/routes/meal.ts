@@ -140,4 +140,39 @@ export async function mealRoutes(app: FastifyInstance) {
       }
     }
   )
+
+  app.delete(
+    '/:id',
+    {
+      onRequest: [app.authenticate],
+    },
+    async (request, reply) => {
+      try {
+        const user = request.user as AuthUserType
+        const { id } = request.params as { id: string }
+
+        const meal = await getMealById(id)
+        if (!meal) {
+          return reply.status(404).send({
+            message: 'Meal not found',
+          })
+        }
+        if (meal.user_id != user.id) {
+          return reply.status(401).send({
+            message: 'This user is not authorized to access this meal!',
+          })
+        }
+
+        await knex('meals').where('id', meal.id).first().delete()
+
+        return reply.status(200).send({
+          message: 'Meal deleted successfully!',
+        })
+      } catch (error: any) {
+        return reply.status(error.status || 500).send({
+          message: error.message,
+        })
+      }
+    }
+  )
 }
