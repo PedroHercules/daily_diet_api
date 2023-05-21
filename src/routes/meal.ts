@@ -9,6 +9,29 @@ async function getMealById(id: string) {
   return meal
 }
 
+function groupMealsByDate(meals: any[]) {
+  const groupedMealsByDate: any = {}
+  meals.forEach((meal) => {
+    const { date } = meal
+    if (!groupedMealsByDate[date]) {
+      groupedMealsByDate[date] = []
+    }
+    groupedMealsByDate[date].push(meal)
+  })
+
+  return groupedMealsByDate
+}
+
+function getBestMealsDateSequence(groupMealsDate: any) {
+  const bestDaysSequenceOnDiet = Object.keys(groupMealsDate).filter((date) =>
+    groupMealsDate[date].some((meal: any) => {
+      return meal.is_on_diet
+    })
+  )
+
+  return bestDaysSequenceOnDiet.length
+}
+
 export async function mealRoutes(app: FastifyInstance) {
   app.post(
     '/',
@@ -169,6 +192,43 @@ export async function mealRoutes(app: FastifyInstance) {
           message: 'Meal deleted successfully!',
         })
       } catch (error: any) {
+        return reply.status(error.status || 500).send({
+          message: error.message,
+        })
+      }
+    }
+  )
+
+  app.get(
+    '/metrics',
+    {
+      onRequest: [app.authenticate],
+    },
+    async (request, reply) => {
+      try {
+        const user = request.user as AuthUserType
+        const meals = await knex('meals').where('user_id', user.id)
+
+        const qtdUserMealsCreated = meals.length
+
+        const userMealsOnDiet = meals.filter((meal) => {
+          return meal.is_on_diet
+        })
+        const qtdUserMealsOnDiet = userMealsOnDiet.length
+
+        const userMealsOutDiet = qtdUserMealsCreated - qtdUserMealsOnDiet
+
+        const groupedMealsByDate = groupMealsByDate(meals)
+        const bestDaysSequence = getBestMealsDateSequence(groupedMealsByDate)
+
+        return reply.status(200).send({
+          qtdUserMealsCreated,
+          qtdUserMealsOnDiet,
+          userMealsOutDiet,
+          bestDaysSequence,
+        })
+      } catch (error: any) {
+        console.log(error)
         return reply.status(error.status || 500).send({
           message: error.message,
         })
